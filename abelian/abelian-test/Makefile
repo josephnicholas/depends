@@ -1,6 +1,7 @@
 
 target-y = \
-	address
+	address \
+	key_liboqs_tests
 
 common_cflags = \
 	-DHAVE_CONFIG_H \
@@ -39,5 +40,11 @@ address_cxxflags-y  = ${common_cxxflags}
 address_libraries-y = ${common_libraries}
 address_ldflags-y   = ${common_ldflags}
 
+# key creation
+key_liboqs_tests_files-y     = key_liboqs_tests.cpp bitcoin.cpp util.c
+key_liboqs_tests_cflags-y    = ${common_cflags}
+key_liboqs_tests_cxxflags-y  = ${common_cxxflags}
+key_liboqs_tests_libraries-y = ${common_libraries}
+key_liboqs_tests_ldflags-y   = ${common_ldflags}
 
 include Makefile.lib
