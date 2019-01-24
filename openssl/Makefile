@@ -17,7 +17,7 @@ OPENSSL_PLT = iossimulator-xcrun
 endif
 
 openssl_clone:
-	if [ ! -f "openssl-$(OPENSSL_VERSION).tar.gz" ]; then curl -OL https://www.openssl.org/source/openssl-$(OPENSSL_VERSION).tar.gz; fi
+	if [ ! -f "openssl-$(OPENSSL_VERSION).tar.gz" ]; then curl --http1.1 -OL https://www.openssl.org/source/openssl-$(OPENSSL_VERSION).tar.gz; fi
 	if [ ! -d "openssl-$(OPENSSL_VERSION)" ]; then tar xvf openssl-$(OPENSSL_VERSION).tar.gz; fi
 
 openssl_config:

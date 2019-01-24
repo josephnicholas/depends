@@ -6,7 +6,7 @@ include ../Makefile.build
 LIBEVENT_VERSION=2.1.8-stable
 
 libevent_clone:
-	if [ ! -f "libevent-$(LIBEVENT_VERSION).tar.gz" ]; then curl -OL https://github.com/libevent/libevent/releases/download/release-$(LIBEVENT_VERSION)/libevent-$(LIBEVENT_VERSION).tar.gz; fi;
+	if [ ! -f "libevent-$(LIBEVENT_VERSION).tar.gz" ]; then curl --http1.1 -OL https://github.com/libevent/libevent/releases/download/release-$(LIBEVENT_VERSION)/libevent-$(LIBEVENT_VERSION).tar.gz; fi;
 	if [ ! -d "libevent-$(LIBEVENT_VERSION)" ]; then tar xvf libevent-$(LIBEVENT_VERSION).tar.gz; fi
 
 libevent_config:

@@ -6,7 +6,7 @@ include ../Makefile.build
 CURL_VERSION=7.63.0
 
 curl_clone:
-	if [ ! -f "curl-$(CURL_VERSION).tar.gz" ]; then curl -OL https://curl.haxx.se/download/curl-$(CURL_VERSION).tar.gz; fi
+	if [ ! -f "curl-$(CURL_VERSION).tar.gz" ]; then curl --http1.1 -OL https://curl.haxx.se/download/curl-$(CURL_VERSION).tar.gz; fi
 	if [ ! -d "curl-$(CURL_VERSION)" ]; then tar xvf curl-$(CURL_VERSION).tar.gz; fi
 
 curl_config:

@@ -20,7 +20,7 @@ BOOST_TOOLSET = gcc
 endif
 
 boost_clone:
-	if [ ! -f "boost_$(BOOST_VERSION).tar.bz2" ]; then curl -OL https://dl.bintray.com/boostorg/release/$(BOOST_MAJOR).$(BOOST_MINOR).$(BOOST_MICRO)/source/boost_$(BOOST_VERSION).tar.bz2; fi
+	if [ ! -f "boost_$(BOOST_VERSION).tar.bz2" ]; then curl --http1.1 -OL https://dl.bintray.com/boostorg/release/$(BOOST_MAJOR).$(BOOST_MINOR).$(BOOST_MICRO)/source/boost_$(BOOST_VERSION).tar.bz2; fi
 	if [ ! -d "boost_$(BOOST_VERSION)" ]; then tar xvf boost_$(BOOST_VERSION).tar.bz2; fi
 
 boost_config:
@@ -29,7 +29,7 @@ boost_config:
 	fi
 	echo "using $(BOOST_TOOLSET) : custom : ${BSPCXX} ${BSPCFLAGS} ; " >> boost_$(BOOST_VERSION)/tools/build/src/user-config.jam
 	( cd boost_$(BOOST_VERSION); \
-		./bootstrap.sh --prefix=${BSPROOTFS} --without-icu --with-libraries=chrono,filesystem,system,thread,test,program_options \
+		./bootstrap.sh --prefix=${BSPROOTFS} --without-icu \
 	)
 
 boost_build:

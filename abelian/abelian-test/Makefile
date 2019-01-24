@@ -31,6 +31,7 @@ common_ldflags = \
 	-lboost_thread-mt \
 	-lboost_chrono-mt \
 	-loqs \
+	-lpicnic_i \
 	$(shell PKG_CONFIG_PATH=${BSPROOTFS}/lib/pkgconfig pkg-config openssl --static --libs)
 
 # address

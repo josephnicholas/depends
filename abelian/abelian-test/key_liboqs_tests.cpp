@@ -22,7 +22,9 @@
 
 extern "C" {
 	// Liboqs
-	#include "oqs/oqs.h"
+	#include <oqs/oqs.h>
+    #include <oqs/picnic.h>
+    #include <oqs/common.h>
 }
 // Experimental Variables
 static OQS_SIG *qTESLA_I_context_sign = OQS_SIG_new(OQS_SIG_alg_default);
@@ -56,13 +58,33 @@ static bool OQS_Check(const unsigned char *vch) {
     return false;//secp256k1_ec_seckey_verify(secp256k1_context_sign, vch);
 }
 
-static void OQS_MakeNewKey(bool fCompressedIn) {
-    do {
-        //GetStrongRandBytes(keydata.data(), keydata.size());
-        OQS_randombytes(keydata.data(), keydata.size());
-    } while (!OQS_Check(keydata.data()));
+static void OQS_MakeNewKey() {
+   // do {
+   //     //GetStrongRandBytes(keydata.data(), keydata.size());
+   //     OQS_randombytes(keydata.data(), keydata.size());
+   // } while (!OQS_Check(keydata.data()));
     //fValid = true;
-    //fCompressed = fCompressedIn;
+    printf("Generating key....\n");
+
+    char *private_key_str;
+	char *public_key_str;
+
+    picnic_publickey_t pk;
+    picnic_privatekey_t sk;
+
+    int ret = picnic_keygen(Picnic_L1_FS, &pk, &sk);
+
+    if (ret != 0) {
+        printf("picnic_keygen failed\n");
+        exit(-1);
+    }
+
+    bin_to_hex(sk.data, PICNIC_MAX_PRIVATEKEY_SIZE, &private_key_str);
+    bin_to_hex(pk.data, PICNIC_MAX_PUBLICKEY_SIZE, &public_key_str);
+    printf("PRIVATE_KEY: %s\n", private_key_str);
+    printf("PUBLIC_KEY: %s\n", public_key_str);
+
+    printf(" success\n");
 }
 
 static bool OQS_DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
@@ -165,7 +187,7 @@ static OQS_STATUS signature_test_correctness (const char *method_name)
 	uint8_t *message = nullptr;
 	size_t message_len = 100;
 	uint8_t *signature = nullptr;
-	size_t signature_len = 1376;
+	size_t signature_len = 34004; // PICNIC Signature Length
 	OQS_STATUS rc, ret = OQS_ERROR;
 
 	char *private_key_str;
@@ -248,7 +270,8 @@ int main (int argc, char *argv[])
     // Liboqs
 	// Use system RNG in this program
 	OQS_randombytes_switch_algorithm(OQS_RAND_alg_system);
-	signature_test_correctness(OQS_SIG_alg_default);
-
+	signature_test_correctness(OQS_SIG_alg_picnic_L1_FS);
+    printf("\n\n\n\nPicnic\n");
+    OQS_MakeNewKey();
     return 0;
 }

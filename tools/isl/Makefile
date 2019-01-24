@@ -7,7 +7,7 @@ include ../Makefile.build
 ISL_VERSION="0.19"
 
 isl_clone:
-	if [ ! -f "isl-$(ISL_VERSION).tar.gz" ]; then curl -OL http://isl.gforge.inria.fr/isl-$(ISL_VERSION).tar.bz2; fi;
+	if [ ! -f "isl-$(ISL_VERSION).tar.gz" ]; then curl --http1.1 -OL http://isl.gforge.inria.fr/isl-$(ISL_VERSION).tar.bz2; fi;
 	if [ ! -d "isl-$(ISL_VERSION)" ]; then tar xzf isl-$(ISL_VERSION).tar.bz2; fi
 
 isl_config:
