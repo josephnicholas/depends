@@ -124,23 +124,19 @@ static OQS_STATUS OQS_GetPubKey()  {
 
     rc = OQS_SIG_qTESLA_I_keypair(public_key, secret_key);
 
-    result.Serialize()
-
     return OQS_SUCCESS;
 }
 
-static bool OQS_VerifyPubKey(const CPubKey& pubkey) const {
-    if (pubkey.IsCompressed() != fCompressed) {
-        return false;
-    }
-    unsigned char rnd[8];
-    std::string str = "Bitcoin key verification\n";
-    GetRandBytes(rnd, sizeof(rnd));
-    uint256 hash;
-    CHash256().Write((unsigned char*)str.data(), str.size()).Write(rnd, sizeof(rnd)).Finalize(hash.begin());
-    std::vector<unsigned char> vchSig;
-    Sign(hash, vchSig);
-    return pubkey.Verify(hash, vchSig);
+static bool OQS_VerifyPubKey(const CPubKey& pubkey) {
+    //unsigned char rnd[8];
+    //std::string str = "Bitcoin key verification\n";
+    //GetRandBytes(rnd, sizeof(rnd));
+    //uint256 hash;
+    //CHash256().Write((unsigned char*)str.data(), str.size()).Write(rnd, sizeof(rnd)).Finalize(hash.begin());
+    //std::vector<unsigned char> vchSig;
+    //Sign(hash, vchSig);
+    //return pubkey.Verify(hash, vchSig);
+    return true;
 }
 
 static bool OQS_DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet)
