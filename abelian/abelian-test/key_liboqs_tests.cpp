@@ -88,25 +88,80 @@ static CPubKey OQS_GetPubKey() {
 //SigHasLowR
 
 static bool OQS_Sign(const uint256 &hash, std::vector<unsigned char>& vchSig, bool grind, uint32_t test_case) {
-    if (!fValid)
-        return false;
+    //if (!fValid)
+      //  return false;
     vchSig.resize(CPubKey::SIGNATURE_SIZE);
     size_t nSigLen = CPubKey::SIGNATURE_SIZE;
-    unsigned char extra_entropy[32] = {0};
-    WriteLE32(extra_entropy, test_case);
-    secp256k1_ecdsa_signature sig;
-    uint32_t counter = 0;
-    int ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, (!grind && test_case) ? extra_entropy : nullptr);
+    //unsigned char extra_entropy[32] = {0};
+    //WriteLE32(extra_entropy, test_case);
+    //secp256k1_ecdsa_signature sig;
+    //uint32_t counter = 0;
+    //int ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, (!grind && test_case) ? extra_entropy : nullptr);
 
     // Grind for low R
-    while (ret && !SigHasLowR(&sig) && grind) {
-        WriteLE32(extra_entropy, ++counter);
-        ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, extra_entropy);
-    }
-    assert(ret);
-    secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign, vchSig.data(), &nSigLen, &sig);
+    //while (ret && !SigHasLowR(&sig) && grind) {
+    //    WriteLE32(extra_entropy, ++counter);
+    //    ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, extra_entropy);
+   // }
+    //assert(ret);
+    //secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign, vchSig.data(), &nSigLen, &sig);
     vchSig.resize(nSigLen);
-    return true;
+    vchSig = std::vector<unsigned char>(signature, signature + signature_len);
+    OQS_STATUS status = OQS_ERROR;
+
+    status = OQS_SIG_sign(qTESLA_I_context_sign, vchSig.data(), &nSigLen, hash.begin(), hash.size(), private_key);
+
+    return status;
+}
+
+//pubkey.cpp
+static bool OQS_Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
+   // if (!IsValid())
+   //     return false;
+    //secp256k1_pubkey pubkey;
+    //secp256k1_ecdsa_signature sig;
+   // if (!secp256k1_ec_pubkey_parse(secp256k1_context_verify, &pubkey, vch, size())) {
+   //     return false;
+   // }
+   // if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &sig, vchSig.data(), vchSig.size())) {
+   //     return false;
+   // }
+    /* libsecp256k1's ECDSA verification requires lower-S signatures, which have
+     * not historically been enforced in Bitcoin, so normalize them first. */
+    OQS_STATUS status = OQS_ERROR;
+    status = OQS_SIG_verify(qTESLA_I_context_sign, hash.begin(), hash.size(), vchSig.data(), vchSig.size(), public_key);
+    //secp256k1_ecdsa_signature_normalize(secp256k1_context_verify, &sig, &sig);
+    return status;
+}
+
+static bool OQS_VerifyPubKey(const CPubKey& pubkey)  {
+    //if (pubkey.IsCompressed() != fCompressed) {
+    //    return false;
+    //}
+    uint8_t *messageVerify = new uint8_t[MESSAGE_LEN];
+    size_t messageVerify_len = MESSAGE_LEN;
+
+    std::string str = "Bitcoin key verification\n";
+    OQS_randombytes(messageVerify, messageVerify_len);
+    uint256 hash;
+    CHash256().Write((unsigned char*)str.data(), str.size()).Write(messageVerify, messageVerify_len).Finalize(hash.begin());
+    std::vector<unsigned char> vchSig;
+    OQS_Sign(hash, vchSig, false, 0);
+    return OQS_Verify(hash, vchSig);
+}
+
+//SignCompact
+
+static bool OQS_Load(const CPrivKey &privkey, const CPubKey &vchPubKey, bool fSkipCheck=false) {
+   // if (!ec_privkey_import_der(secp256k1_context_sign, (unsigned char*)begin(), privkey.data(), privkey.size()))
+   //     return false;
+   // fCompressed = vchPubKey.IsCompressed();
+   // fValid = true;
+
+// if (fSkipCheck)
+//        return true;
+
+    return OQS_VerifyPubKey(vchPubKey);
 }
 
 // Liboqs test
@@ -162,10 +217,14 @@ static OQS_STATUS signature_test_correctness (const char *method_name)
 	bin_to_hex(private_key, qTESLA_I_context_sign->length_secret_key, &private_key_str);
     std::vector<unsigned char> private_key_container = ParseHex(private_key_str);
     std::string base58Key = EncodeBase58(private_key_container.data(), private_key_container.data() + private_key_container.size());
-	printf("b58 key size: %d\n", private_key_container.size(), base58Key.size());
+	printf("b58 key size: %d\n", base58Key.size());
 
     // Key creation(Bitcoin)
     CKey key1  = DecodeSecret(base58Key);
+    CPubKey pubkey1  = OQS_GetPubKey();
+    //OQS_VerifyPubKey(pubkey1);
+    printf("\nVerify PubKey=%d\n", OQS_VerifyPubKey(pubkey1));
+
 
     printf("++++Public KEYS++++\n");
     bin_to_hex(public_key, qTESLA_I_context_sign->length_public_key, &public_key_str);
@@ -179,10 +238,10 @@ static OQS_STATUS signature_test_correctness (const char *method_name)
 	if (qTESLA_I_context_sign != NULL) {
 		OQS_MEM_secure_free(private_key, qTESLA_I_context_sign->length_secret_key);
 	}
-	OQS_MEM_insecure_free(public_key);
-	OQS_MEM_insecure_free(keydata.data());
-	OQS_MEM_insecure_free(signature);
-	OQS_SIG_free(qTESLA_I_context_sign);
+	//OQS_MEM_insecure_free(public_key);
+	//OQS_MEM_insecure_free(keydata.data());
+	//OQS_MEM_insecure_free(signature);
+	//OQS_SIG_free(qTESLA_I_context_sign);
 
 	return ret;
 }
